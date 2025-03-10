@@ -1,0 +1,33 @@
+[project]
+name = "context"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "Sean Haugh",email = "sean@lfo.team"}
+]
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.group.dev.dependencies]
+isort = "^6.0.1"
+ruff = "^0.9.10"
+pytest = "^8.0.0"
+pytest-cov = "^4.1.0"
+hypothesis = "^6.93.1"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
+addopts = "--cov=context --cov-report=term-missing"
+
+[tool.coverage.run]
+source = ["context"]
+omit = ["*/__init__.py"]
+
