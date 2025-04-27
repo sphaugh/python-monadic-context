@@ -1,10 +1,9 @@
 from context.context import requires, use
 import context.context as context
-from context.tag import Tag
 
 
-port_tag = Tag[int]("port")
-host_tag = Tag[str]("host")
+port_tag = context.Tag[int]("port")
+host_tag = context.Tag[str]("host")
 
 
 @requires
@@ -16,10 +15,10 @@ def build_url():
 
 def main():
     # Several ways to create contexts:
-    basic = context.of(port_tag, 8080)
+    basic = context.of(port_tag)(8080)
 
     # 1. Using multiple join operations
-    context1 = context.of(port_tag, 8080).join(context.of(host_tag, "localhost"))
+    context1 = context.of(port_tag)(8080).join(context.of(host_tag)("localhost"))
 
     # 2. Using from_pairs (more efficient for multiple services)
     context2 = context.from_pairs(
