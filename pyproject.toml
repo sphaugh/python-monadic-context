@@ -1,5 +1,5 @@
 [project]
-name = "context"
+name = "monadic-context"
 version = "0.1.0"
 description = ""
 authors = [

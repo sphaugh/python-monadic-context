@@ -1,7 +1,7 @@
 from hypothesis import given
 from hypothesis import strategies as st
 
-from context.context import (
+from monadic_context.context import (
     ask,
     asks,
     of,
@@ -18,7 +18,7 @@ from context.context import (
     use,
     Tag,
 )
-from context.pipe import compose, pipe
+from monadic_context.pipe import compose, pipe
 
 
 def _double(x: int) -> int:
