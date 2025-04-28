@@ -83,14 +83,11 @@ ctx4 = context.from_dict({port_tag: 8080, host_tag: "localhost"})
 The library supports standard monadic operations:
 
 ```python
-from context.context import map, bind, pure
-
 # Map over a context-requiring function
-home_url = pipe(build_url, map(lambda url: f"{url}/home"))
+home_url = context.pipe(build_url(), context.map(lambda url: f"{url}/home"))
 
 result = ctx.run(home_url)
 print(result)  # Output: http://localhost:8080/home
-
 ```
 
 ### With Service
