@@ -191,7 +191,7 @@ def test_context_creation_methods():
 def test_context_extension():
     tag1 = Tag[int]("tag1")
     tag2 = Tag[str]("tag2")
-    tag3 = Tag[float]("tag3")
+    tag3 = Tag[bool]("tag3")
 
     context1 = of(tag1)(42)
     context2 = of(tag2)("hello")
