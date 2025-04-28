@@ -19,13 +19,13 @@ A lightweight, type-safe dependency injection library for Python.
 Requires Python 3.12+
 
 ```bash
-pip install context
+pip install monadic-context
 ```
 
 Or with Poetry:
 
 ```bash
-poetry add context
+poetry add monadic-context
 ```
 
 ## Quick Example

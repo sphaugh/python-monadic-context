@@ -1,12 +1,20 @@
 [project]
 name = "monadic-context"
 version = "0.2.0"
-description = ""
+description = "A lightweight, type-safe dependency injection library"
 authors = [
     {name = "Sean Haugh",email = "sean@lfo.team"}
 ]
 readme = "README.md"
 requires-python = ">=3.12"
+license = "MIT"
+repository = "https://github.com/sphaugh/python-monadic-context"
+classifiers = [
+    "Programming Language :: Python :: 3.12",
+    "License :: OSI Approved :: MIT License",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Typing :: Typed"
+]
 dependencies = [
 ]
 

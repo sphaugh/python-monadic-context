@@ -190,6 +190,11 @@ def genid():
 
 @dataclass(frozen=True)
 class Tag[T]:
+    """Type-safe identifier for a dependency in a context.
+
+    Used to request and provide dependencies of a specific type.
+    """
+
     _id: str = field(default_factory=genid())
 
     @classmethod
