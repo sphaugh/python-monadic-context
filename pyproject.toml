@@ -25,9 +25,9 @@ hypothesis = "^6.93.1"
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = "test_*.py"
-addopts = "--cov=context --cov-report=term-missing"
+addopts = "--cov=monadic_context --cov-report=term-missing"
 
 [tool.coverage.run]
-source = ["context"]
+source = ["monadic_context"]
 omit = ["*/__init__.py"]
 

@@ -1,8 +1,8 @@
 # Monadic Context
 
-[![PyPI version](https://img.shields.io/pypi/v/context.svg)](https://pypi.org/project/monadic-context/)
-[![Python versions](https://img.shields.io/pypi/pyversions/context.svg)](https://pypi.org/project/monadic-context/)
-[![License](https://img.shields.io/github/license/seanhaugh/python-monadic-context)](https://github.com/sphaugh/python-monadic-context/blob/main/LICENSE)
+[![PyPI version](https://img.shields.io/pypi/v/monadic-context.svg)](https://pypi.org/project/monadic-context/)
+[![Python versions](https://img.shields.io/pypi/pyversions/monadic-context.svg)](https://pypi.org/project/monadic-context/)
+[![License](https://img.shields.io/github/license/sphaugh/python-monadic-context)](https://github.com/sphaugh/python-monadic-context/blob/main/LICENSE)
 
 A lightweight, type-safe dependency injection library for Python.
 
@@ -31,13 +31,13 @@ poetry add context
 ## Quick Example
 
 ```python
-from context.context import requires, use
-import context.context as context
-from context.tag import Tag
+from monadic_context import requires, use
+import monadic_context as context
 
 # Define tags for your dependencies
-port_tag = Tag[int]("port")
-host_tag = Tag[str]("host")
+port_tag = context.Tag[int]("port")
+host_tag = context.Tag[str]("host")
+
 
 # Function that requires dependencies from context
 @requires
@@ -46,11 +46,9 @@ def build_url():
     host = yield from use(host_tag)
     return f"http://{host}:{port}"
 
+
 # Create a context with required dependencies
-ctx = context.from_dict({
-    port_tag: 8080,
-    host_tag: "localhost"
-})
+ctx = context.from_dict({port_tag: 8080, host_tag: "localhost"})
 
 # Run the function with the context
 url = ctx.run(build_url())
@@ -63,10 +61,10 @@ The library offers multiple ways to create contexts:
 
 ```python
 # Single dependency
-ctx1 = context.of(port_tag, 8080)
+ctx1 = context.of(port_tag)(8080)
 
 # Joining contexts
-ctx2 = ctx1.join(context.of(host_tag, "localhost"))
+ctx2 = ctx1.join(context.of(host_tag)("localhost"))
 
 # From pairs (more efficient for multiple dependencies)
 ctx3 = context.from_pairs(
@@ -75,10 +73,7 @@ ctx3 = context.from_pairs(
 )
 
 # From dictionary
-ctx4 = context.from_dict({
-    port_tag: 8080,
-    host_tag: "localhost"
-})
+ctx4 = context.from_dict({port_tag: 8080, host_tag: "localhost"})
 ```
 
 ## Advanced Usage
@@ -103,12 +98,13 @@ print(result)  # Output: http://localhost:8080/home
 For functions that take a service as first argument:
 
 ```python
-from context.context import with_service
+import socket
 
-db_tag = Tag[Connection]("database")
+db_conn_tag = context.Tag[socket.SocketType]("db_conn")
 
-@with_service(db_tag)
-def configure_server(db_conn, timeout=30):
+
+@context.with_service(db_conn_tag)
+def configure_server(db_conn: socket.SocketType, timeout=30):
     # Use db_conn to configure server
     return {"connection": db_conn, "timeout": timeout}
 ```

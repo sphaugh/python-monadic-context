@@ -1,11 +1,12 @@
-from context.context import requires, use
-import context.context as context
+from monadic_context import requires, use
+import monadic_context as context
 
-
+# Define tags for your dependencies
 port_tag = context.Tag[int]("port")
 host_tag = context.Tag[str]("host")
 
 
+# Function that requires dependencies from context
 @requires
 def build_url():
     port = yield from use(port_tag)
@@ -13,27 +14,34 @@ def build_url():
     return f"http://{host}:{port}"
 
 
-def main():
-    # Several ways to create contexts:
-    basic = context.of(port_tag)(8080)
+# Create a context with required dependencies
+ctx = context.from_dict({port_tag: 8080, host_tag: "localhost"})
 
-    # 1. Using multiple join operations
-    context1 = context.of(port_tag)(8080).join(context.of(host_tag)("localhost"))
+# Run the function with the context
+url = ctx.run(build_url())
+print(url)  # Output: http://localhost:8080
 
-    # 2. Using from_pairs (more efficient for multiple services)
-    context2 = context.from_pairs(
-        (port_tag, 8080),
-        (host_tag, "localhost"),
-    )
+# Single dependency
+ctx1 = context.of(port_tag)(8080)
 
-    # 3. Using from_dict (more efficient for multiple services)
-    context3 = context.from_dict({port_tag: 8080, host_tag: "localhost"})
+# Joining contexts
+ctx2 = ctx1.join(context.of(host_tag)("localhost"))
 
-    # All approaches produce equivalent contexts
-    url = build_url()
-    result = context3.run(url)
-    print(result)  # Output: http://localhost:8080
+# From pairs (more efficient for multiple dependencies)
+ctx3 = context.from_pairs(
+    (port_tag, 8080),
+    (host_tag, "localhost"),
+)
+
+# From dictionary
+ctx4 = context.from_dict({port_tag: 8080, host_tag: "localhost"})
+
+import socket
+
+db_conn_tag = context.Tag[socket.SocketType]("db_conn")
 
 
-if __name__ == "__main__":
-    main()
+@context.with_service(db_conn_tag)
+def configure_server(db_conn: socket.SocketType, timeout=30):
+    # Use db_conn to configure server
+    return {"connection": db_conn, "timeout": timeout}
