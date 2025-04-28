@@ -1,6 +1,6 @@
 [project]
 name = "monadic-context"
-version = "0.2.0"
+version = "0.2.1"
 description = "A lightweight, type-safe dependency injection library"
 authors = [
     {name = "Sean Haugh",email = "sean@lfo.team"}
