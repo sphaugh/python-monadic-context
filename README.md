@@ -16,7 +16,7 @@ A lightweight, type-safe dependency injection library for Python.
 
 ## Installation
 
-Requires Python 3.12+
+Requires Python 3.9+
 
 ```bash
 pip install monadic-context
