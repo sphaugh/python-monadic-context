@@ -7,7 +7,7 @@ from dataclasses import dataclass, field
 from functools import wraps
 from typing import Any, Generator, Generic, TypeVar
 
-if sys.version_info >= (3, 10):
+if sys.version_info >= (3, 11):
     from typing import Never, ParamSpec
 else:
     from typing_extensions import Never, ParamSpec
