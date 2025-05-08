@@ -5,12 +5,12 @@ import sys
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from functools import wraps
-from typing import Any, Generator, Generic, Never, TypeVar
+from typing import Any, Generator, Generic, TypeVar
 
 if sys.version_info >= (3, 10):
-    from typing import ParamSpec
+    from typing import Never, ParamSpec
 else:
-    from typing_extensions import ParamSpec
+    from typing_extensions import Never, ParamSpec
 
 from .defer import defer
 from .pipe import pipe
