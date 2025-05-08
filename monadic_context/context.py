@@ -8,9 +8,9 @@ from functools import wraps
 from typing import Any, Generator, Generic, TypeVar
 
 if sys.version_info >= (3, 11):
-    from typing import Never, ParamSpec
+    from typing import Never, ParamSpec, Concatenate
 else:
-    from typing_extensions import Never, ParamSpec
+    from typing_extensions import Never, ParamSpec, Concatenate
 
 from .defer import defer
 from .pipe import pipe
@@ -118,9 +118,9 @@ def asks(
 
 @defer
 def with_service(
-    f: Callable[..., _A],
+    f: Callable[Concatenate[_T, _P], _A],
     t: Tag[_T],
-) -> Callable[..., RequiresContext[_T, _A]]:
+) -> Callable[_P, RequiresContext[_T, _A]]:
     @wraps(f)
     def _inner(*args, **kwargs) -> RequiresContext[_T, _A]:
         return lambda c: f(c._unsafe_map[t._id], *args, **kwargs)
