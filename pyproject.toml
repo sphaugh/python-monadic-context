@@ -27,13 +27,15 @@ dependencies = [
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
 
+[tool.poetry.dependencies]
+typing_extensions = { version = "^4.13.2", python = "<3.11" }
+
 [tool.poetry.group.dev.dependencies]
 isort = "^6.0.1"
 ruff = "^0.9.10"
 pytest = "^8.0.0"
 pytest-cov = "^4.1.0"
 hypothesis = "^6.93.1"
-typing_extensions = { version = "^4.13.2", python = "<3.11" }
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
