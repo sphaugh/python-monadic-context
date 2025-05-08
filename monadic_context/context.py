@@ -1,46 +1,61 @@
 from __future__ import annotations
 
 import itertools
+import sys
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from functools import wraps
-from typing import Any, Concatenate, Generator, Generic, Never, TypeVar
+from typing import Any, Generator, Generic, Never, TypeVar
+
+if sys.version_info >= (3, 10):
+    from typing import ParamSpec
+else:
+    from typing_extensions import ParamSpec
 
 from .defer import defer
 from .pipe import pipe
 
+_T = TypeVar("_T")
+_A = TypeVar("_A")
+_B = TypeVar("_B")
+_U = TypeVar("_U")
+_R = TypeVar("_R")
+_P = ParamSpec("_P")
+_T_contra = TypeVar("_T_contra", contravariant=True)
+_T_co = TypeVar("_T_co", covariant=True)
 
-type RequiresContext[T, A] = Callable[[Context[T]], A]
+
+RequiresContext = Callable[["Context[_T]"], _A]
 
 
-def pure[A](a: A) -> RequiresContext[Never, A]:
+def pure(a: _A) -> RequiresContext[Never, _A]:
     """Create a pure context-requiring function that returns a value."""
 
-    def _inner(_: Context[Never]) -> A:
+    def _inner(_: Context[Never]) -> _A:
         return a
 
     return _inner
 
 
 @defer
-def map[T, A, B](
-    ma: RequiresContext[T, A],
-    f: Callable[[A], B],
-) -> RequiresContext[T, B]:
+def map(
+    ma: RequiresContext[_T, _A],
+    f: Callable[[_A], _B],
+) -> RequiresContext[_T, _B]:
     @wraps(f)
-    def _inner(c: Context[T]) -> B:
+    def _inner(c: Context[_T]) -> _B:
         return f(c.run(ma))
 
     return _inner
 
 
 @defer
-def bind[T, A, U, B](
-    ma: RequiresContext[T, A],
-    f: Callable[[A], RequiresContext[U, B]],
-) -> RequiresContext[T | U, B]:
+def bind(
+    ma: RequiresContext[_T, _A],
+    f: Callable[[_A], RequiresContext[_U, _B]],
+) -> RequiresContext[_T | _U, _B]:
     @wraps(f)
-    def _inner(c: Context[T | U]) -> B:
+    def _inner(c: Context[_T | _U]) -> _B:
         a = c.run(ma)
 
         return c.run(f(a))
@@ -49,12 +64,12 @@ def bind[T, A, U, B](
 
 
 @defer
-def apply[T, A, U, B](
-    mab: RequiresContext[U, Callable[[A], B]],
-    ma: RequiresContext[T, A],
-) -> RequiresContext[T | U, B]:
+def apply(
+    mab: RequiresContext[_T, Callable[[_A], _B]],
+    ma: RequiresContext[_U, _A],
+) -> RequiresContext[_T | _U, _B]:
     @wraps(mab)
-    def _inner(c: Context[T | U]) -> B:
+    def _inner(c: Context[_T | _U]) -> _B:
         a = c.run(ma)
 
         return c.run(mab)(a)
@@ -63,10 +78,10 @@ def apply[T, A, U, B](
 
 
 @defer
-def then[T, A, B](
-    ma: RequiresContext[T, A],
-    mb: RequiresContext[T, B],
-) -> RequiresContext[T, B]:
+def then(
+    ma: RequiresContext[_T, _A],
+    mb: RequiresContext[_T, _B],
+) -> RequiresContext[_T, _B]:
     return pipe(
         mb,
         map(lambda _: lambda b: b),
@@ -75,94 +90,91 @@ def then[T, A, B](
 
 
 @defer
-def traverse[T, A, B](
-    xs: list[A],
-    f: Callable[[A], RequiresContext[T, B]],
-) -> RequiresContext[T, list[B]]:
+def traverse(
+    xs: list[_A],
+    f: Callable[[_A], RequiresContext[_T, _B]],
+) -> RequiresContext[_T, list[_B]]:
     @wraps(f)
-    def _inner(c: Context[T]) -> list[B]:
+    def _inner(c: Context[_T]) -> list[_B]:
         return [c.run(f(x)) for x in xs]
 
     return _inner
 
 
-def ask[T](t: Tag[T]) -> RequiresContext[T, T]:
-    def _inner(c: Context[T]):
+def ask(t: Tag[_T]) -> RequiresContext[_T, _T]:
+    def _inner(c: Context[_T]):
         return c._unsafe_map[t._id]
 
     return _inner
 
 
 @defer
-def asks[T, A](
-    f: Callable[[T], A],
-    t: Tag[T],
-) -> RequiresContext[T, A]:
+def asks(
+    f: Callable[[_T], _A],
+    t: Tag[_T],
+) -> RequiresContext[_T, _A]:
     return pipe(ask(t), map(f))
 
 
 @defer
-def with_service[T, **P, A](
-    f: Callable[Concatenate[T, P], A],
-    t: Tag[T],
-) -> Callable[P, RequiresContext[T, A]]:
+def with_service(
+    f: Callable[..., _A],
+    t: Tag[_T],
+) -> Callable[..., RequiresContext[_T, _A]]:
     @wraps(f)
-    def _inner(*args: P.args, **kwargs: P.kwargs) -> RequiresContext[T, A]:
+    def _inner(*args, **kwargs) -> RequiresContext[_T, _A]:
         return lambda c: f(c._unsafe_map[t._id], *args, **kwargs)
 
     return _inner
-
-
-_T_contra = TypeVar("_T_contra", contravariant=True)
 
 
 @dataclass(frozen=True)
 class Context(Generic[_T_contra]):
     _unsafe_map: dict[str, Any] = field(default_factory=dict)
 
-    def run[A](self, f: RequiresContext[_T_contra, A]) -> A:
+    def run(self, f: RequiresContext[_T_contra, _A]) -> _A:
         return f(self)
 
-    def join[U](self, other: Context[U]) -> Context[_T_contra | U]:
+    def join(self, other: Context[_U]) -> Context[_T_contra | _U]:
         return Context(
             {**self._unsafe_map, **other._unsafe_map},
         )
 
-    def extend[U](self, t: Tag[U], service: U) -> Context[_T_contra | U]:
+    def extend(self, t: Tag[_U], service: _U) -> Context[_T_contra | _U]:
         return Context({**self._unsafe_map, t._id: service})
 
 
 @defer
-def of[T](service: T, t: Tag[T]) -> Context[T]:
+def of(service: _T, t: Tag[_T]) -> Context[_T]:
     """Create a new context with a single service."""
 
     return Context({t._id: service})
 
 
-def from_dict[T](services: dict[Tag[T], T]) -> Context[T]:
+def from_dict(services: dict[Tag[_T], _T]) -> Context[_T]:
     """Create a context from a dictionary of tag to service mappings."""
 
     return from_pairs(*services.items())
 
 
-def from_pairs[T](*pairs: tuple[Tag[T], T]) -> Context[T]:
+def from_pairs(*pairs: tuple[Tag[_T], _T]) -> Context[_T]:
     """Create a context from multiple (tag, service) pairs."""
 
     return Context({t._id: service for t, service in pairs})
 
 
-type ServiceGenerator[**P, R, A] = Callable[P, Generator[Tag[R], R, A]]
+ServiceGenerator = Callable[_P, Generator["Tag[_R]", _R, _A]]
 
 
-def requires[**P, R, A](
-    f: ServiceGenerator[P, R, A],
-) -> Callable[P, RequiresContext[R, A]]:
+def requires(
+    f: ServiceGenerator[_P, _R, _A],
+) -> Callable[_P, RequiresContext[_R, _A]]:
     """Decorator to mark a function as requiring context.
     This allows the function to yield tags and receive values from the context.
     """
 
     @wraps(f)
-    def _inner(c: Context[R], *args: P.args, **kwargs: P.kwargs) -> A:
+    def _inner(c: Context[_R], *args: _P.args, **kwargs: _P.kwargs) -> _A:
         gen = f(*args, **kwargs)
         value = None
         while True:
@@ -179,7 +191,7 @@ def requires[**P, R, A](
     return lambda *args, **kwargs: lambda c: _inner(c, *args, **kwargs)
 
 
-def use[T](tag: Tag[T]) -> Generator[Tag[T], T, T]:
+def use(tag: Tag[_T]) -> Generator[Tag[_T], _T, _T]:
     return (yield tag)
 
 
@@ -189,7 +201,7 @@ def genid():
 
 
 @dataclass(frozen=True)
-class Tag[T]:
+class Tag(Generic[_T_co]):
     """Type-safe identifier for a dependency in a context.
 
     Used to request and provide dependencies of a specific type.
@@ -198,5 +210,5 @@ class Tag[T]:
     _id: str = field(default_factory=genid())
 
     @classmethod
-    def new(cls, id: str) -> Tag[T]:
+    def new(cls, id: str) -> Tag[_T_co]:
         return cls(id)
