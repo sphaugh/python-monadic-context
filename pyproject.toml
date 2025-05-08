@@ -6,11 +6,10 @@ authors = [
     {name = "Sean Haugh",email = "sean@lfo.team"}
 ]
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 license = "MIT"
 repository = "https://github.com/sphaugh/python-monadic-context"
 classifiers = [
-    "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
@@ -29,7 +28,7 @@ requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.group.dev.dependencies]
-isort = { version =  "^6.0.1", python = ">=3.9" }
+isort = "^6.0.1"
 ruff = "^0.9.10"
 pytest = "^8.0.0"
 pytest-cov = "^4.1.0"

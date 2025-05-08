@@ -190,7 +190,6 @@ description = "A Python utility / library to sort Python imports."
 optional = false
 python-versions = ">=3.9.0"
 groups = ["dev"]
-markers = "python_version >= \"3.9\""
 files = [
     {file = "isort-6.0.1-py3-none-any.whl", hash = "sha256:2dc5d7f65c9678d94c88dfc29161a320eec67328bc97aad576874cb4be1e9615"},
     {file = "isort-6.0.1.tar.gz", hash = "sha256:1cb5df28dfbc742e490c5e41bad6da41b805b0a8be7bc93cd0fb2a8a890ac450"},
@@ -368,5 +367,5 @@ files = [
 
 [metadata]
 lock-version = "2.1"
-python-versions = ">=3.8"
-content-hash = "27f520a8d6f5c4d3ac230fb2f3a453acb10572ba67d650c8edbd12e0a545da2c"
+python-versions = ">=3.9"
+content-hash = "3961394f1aef17391f78693820ea7f8004f5615683c78651451df0b25c4cc5d2"
