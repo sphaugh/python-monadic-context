@@ -216,7 +216,18 @@ def test_requires_and_use():
         return f"{msg} {num}"
 
     context = from_pairs((tag1, 42), (tag2, "The answer is"))
-
     result = context.run(build_message())
+    assert result == "The answer is 42"
 
+
+def test_use_tag():
+    tag1 = Tag[int]("tag1")
+
+    @requires
+    def build_message():
+        num = yield from use(tag1)
+        return f"The answer is {num}"
+
+    context = of(tag1)(42)
+    result = context.run(build_message())
     assert result == "The answer is 42"
