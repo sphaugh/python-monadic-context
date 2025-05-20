@@ -212,3 +212,6 @@ class Tag(Generic[_T_co]):
     @classmethod
     def new(cls, id: str) -> Tag[_T_co]:
         return cls(id)
+
+    def use(self) -> Generator[Tag[_T_co], _T_co, _T_co]:
+        return use(self)
