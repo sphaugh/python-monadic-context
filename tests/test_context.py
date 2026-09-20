@@ -256,3 +256,10 @@ def test_pure(value):
     context, _ = make_test_context(0)
 
     assert context.run(pure(value)) == value
+
+
+def test_generated_tag_ids_are_unique_and_do_not_collide_with_user_ids():
+    generated = [Tag[int]() for _ in range(3)]
+
+    assert len({t._id for t in generated}) == 3
+    assert all(Tag[int](str(i)) not in generated for i in range(10))

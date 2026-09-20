@@ -203,7 +203,7 @@ def use(tag: Tag[_T]) -> Generator[Tag[_T], _T, _T]:
 
 def genid():
     counter = itertools.count()
-    return lambda: str(next(counter))
+    return lambda: f"_anon{next(counter)}"
 
 
 @dataclass(frozen=True)
