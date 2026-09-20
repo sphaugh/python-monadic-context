@@ -189,7 +189,7 @@ def requires(
         value = None
         while True:
             try:
-                tag = gen.send(value) if value is not None else next(gen)
+                tag = gen.send(value)
             except StopIteration as e:
                 return e.value
             value = c._get(tag)
