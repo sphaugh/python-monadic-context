@@ -80,13 +80,15 @@ def apply(
 @defer
 def then(
     ma: RequiresContext[_T, _A],
-    mb: RequiresContext[_T, _B],
-) -> RequiresContext[_T, _B]:
-    return pipe(
-        mb,
-        map(lambda _: lambda b: b),
-        apply(ma),
-    )
+    mb: RequiresContext[_U, _B],
+) -> RequiresContext[_T | _U, _B]:
+    """Run ``ma`` for its effects, then run ``mb`` and return its value."""
+
+    def _inner(c: Context[_T | _U]) -> _B:
+        c.run(ma)
+        return c.run(mb)
+
+    return _inner
 
 
 @defer

@@ -123,9 +123,9 @@ def test_then(value):
 
     ma = ask(tag)
     mb = pure(42)
-    result = then(ma)(mb)
 
-    assert context.run(result) == 42
+    assert context.run(pipe(ma, then(mb))) == 42
+    assert context.run(pipe(mb, then(ma))) == value
 
 
 @given(st.lists(st.integers(), min_size=1, max_size=10))
