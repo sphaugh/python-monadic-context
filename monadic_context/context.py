@@ -104,8 +104,8 @@ def traverse(
 
 
 def ask(t: Tag[_T]) -> RequiresContext[_T, _T]:
-    def _inner(c: Context[_T]):
-        return c._unsafe_map[t._id]
+    def _inner(c: Context[_T]) -> _T:
+        return c._get(t)
 
     return _inner
 
@@ -125,7 +125,7 @@ def with_service(
 ) -> Callable[_P, RequiresContext[_T, _A]]:
     @wraps(f)
     def _inner(*args, **kwargs) -> RequiresContext[_T, _A]:
-        return lambda c: f(c._unsafe_map[t._id], *args, **kwargs)
+        return lambda c: f(c._get(t), *args, **kwargs)
 
     return _inner
 
@@ -136,6 +136,14 @@ class Context(Generic[_T_contra]):
 
     def run(self, f: RequiresContext[_T_contra, _A]) -> _A:
         return f(self)
+
+    def _get(self, t: Tag[_A]) -> _A:
+        try:
+            return self._unsafe_map[t._id]
+        except KeyError as e:
+            raise KeyError(
+                f"Tag {t._id!r} not found in context. Available tags: {list(self._unsafe_map)}"
+            ) from e
 
     def join(self, other: Context[_U]) -> Context[_T_contra | _U]:
         return Context(
@@ -182,13 +190,9 @@ def requires(
         while True:
             try:
                 tag = gen.send(value) if value is not None else next(gen)
-                value = c._unsafe_map[tag._id]
             except StopIteration as e:
                 return e.value
-            except KeyError as e:
-                raise KeyError(
-                    f"Tag {e} not found in context. Available tags: {list(c._unsafe_map.keys())}"
-                ) from e
+            value = c._get(tag)
 
     return lambda *args, **kwargs: lambda c: _inner(c, *args, **kwargs)
 

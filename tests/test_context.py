@@ -1,3 +1,4 @@
+import pytest
 from hypothesis import given
 from hypothesis import strategies as st
 
@@ -231,3 +232,27 @@ def test_use_tag():
     context = of(tag1)(42)
     result = context.run(build_message())
     assert result == "The answer is 42"
+
+
+@pytest.mark.parametrize(
+    "make",
+    [
+        lambda tag: ask(tag),
+        lambda tag: with_service(tag)(lambda s: s)(),
+        lambda tag: requires(lambda: (yield from use(tag)))(),
+    ],
+)
+def test_missing_tag_error(make):
+    present = Tag[int]("present")
+    missing = Tag[int]("missing")
+    context = of(present)(1)
+
+    with pytest.raises(KeyError, match="'missing' not found.*'present'"):
+        context.run(make(missing))
+
+
+@given(st.integers())
+def test_pure(value):
+    context, _ = make_test_context(0)
+
+    assert context.run(pure(value)) == value
