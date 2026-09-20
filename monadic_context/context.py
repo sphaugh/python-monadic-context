@@ -70,9 +70,9 @@ def apply(
 ) -> RequiresContext[_T | _U, _B]:
     @wraps(mab)
     def _inner(c: Context[_T | _U]) -> _B:
-        a = c.run(ma)
+        f = c.run(mab)
 
-        return c.run(mab)(a)
+        return f(c.run(ma))
 
     return _inner
 
