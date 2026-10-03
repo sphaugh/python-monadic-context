@@ -186,13 +186,12 @@ def requires(
     @wraps(f)
     def _inner(c: Context[_R], *args: _P.args, **kwargs: _P.kwargs) -> _A:
         gen = f(*args, **kwargs)
-        value = None
-        while True:
-            try:
-                tag = gen.send(value)
-            except StopIteration as e:
-                return e.value
-            value = c._get(tag)
+        try:
+            tag = next(gen)
+            while True:
+                tag = gen.send(c._get(tag))
+        except StopIteration as e:
+            return e.value
 
     return lambda *args, **kwargs: lambda c: _inner(c, *args, **kwargs)
 
