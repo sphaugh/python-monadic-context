@@ -20,6 +20,7 @@ from .context import (
 )
 from .defer import defer
 from .pipe import pipe, compose
+from .layers import AsyncLayer, Layer, alayer, layer
 
 __all__ = [
     "Context",
@@ -43,5 +44,9 @@ __all__ = [
     "defer",
     "pipe",
     "compose",
+    "Layer",
+    "AsyncLayer",
+    "layer",
+    "alayer",
 ]
 

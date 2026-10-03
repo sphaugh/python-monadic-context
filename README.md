@@ -106,6 +106,53 @@ def configure_server(db_conn: socket.SocketType, timeout=30):
     return {"connection": db_conn, "timeout": timeout}
 ```
 
+## Layers
+
+A layer is a recipe for building part of a context, with resource lifecycle.
+Write one as a generator function: yield tags to request dependencies, then
+yield the service once. Code after that yield is cleanup, exactly like
+`contextlib.contextmanager`. The decorated function keeps its parameters and
+returns a `Layer` when called.
+
+```python
+import sqlite3
+
+import monadic_context as context
+from monadic_context import Layer, layer, use
+
+dsn_tag = context.Tag[str]("dsn")
+db_tag = context.Tag[sqlite3.Connection]("db")
+
+
+@layer(db_tag)
+def open_db(timeout: float = 5.0):
+    dsn = yield from use(dsn_tag)
+    conn = sqlite3.connect(dsn, timeout=timeout)
+    try:
+        yield conn
+    finally:
+        conn.close()
+
+
+app = Layer.of(dsn_tag, ":memory:").then(open_db(timeout=1.0))
+
+with app.build() as ctx:
+    ctx.run(context.ask(db_tag)).execute("select 1")
+# the connection is closed here; resources are released in reverse order
+```
+
+Chain layers with `then`; each step sees everything built before it, and the
+type checker rejects a step whose requirements are not yet provided. Pyright
+infers `open_db(...)` as `Layer[str, sqlite3.Connection]` from the tags it uses.
+
+`@alayer(tag)` does the same for async generators (request with
+`value = yield tag`, since `yield from` is not allowed there), and
+`AsyncLayer.lift(sync_layer)` mixes a sync layer into an async chain.
+
+The output type of a `Layer` is invariant, so `Layer[Never, A | B]` is not
+assignable to `Layer[Never, A]`. This is what lets the checker infer chains
+exactly.
+
 ## Why Use Monadic Context?
 
 - **Testability**: Easy to mock dependencies for testing

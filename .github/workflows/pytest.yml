@@ -27,6 +27,11 @@ jobs:
       - name: Run tests
         run: |
           poetry run pytest
+      - name: Type-check layer inference
+        if: matrix.python-version == '3.13'
+        uses: jakebailey/pyright-action@v2
+        with:
+          args: monadic_context tests/typing/layer_types.py
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v3
         with:
