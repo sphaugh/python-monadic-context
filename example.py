@@ -24,8 +24,8 @@ print(url)  # Output: http://localhost:8080
 # Single dependency
 ctx1 = context.of(port_tag, 8080)
 
-# Joining contexts
-ctx2 = ctx1.join(context.of(host_tag, "localhost"))
+# Adding a dependency
+ctx2 = ctx1.extend(host_tag, "localhost")
 
 # From pairs (each service is type-checked against its tag)
 ctx3 = context.from_pairs(
