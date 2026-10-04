@@ -19,19 +19,16 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-      - uses: abatilo/actions-poetry@v3
+      # Poetry itself no longer installs on 3.9 / pypy3.10, so CI uses plain pip.
       - name: Install dev dependencies
-        run: |
-          poetry config virtualenvs.create false
-          poetry install --no-interaction --no-ansi
+        run: pip install -e . pytest pytest-cov hypothesis
       - name: Run tests
-        run: |
-          poetry run pytest
+        run: pytest
       - name: Type-check layer inference
         if: matrix.python-version == '3.13'
         uses: jakebailey/pyright-action@v2
         with:
-          args: monadic_context tests/typing
+          extra-args: monadic_context tests/typing
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v3
         with:
