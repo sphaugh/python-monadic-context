@@ -5,7 +5,6 @@ from hypothesis import strategies as st
 from monadic_context.context import (
     ask,
     asks,
-    of,
     map,
     bind,
     pure,
@@ -13,11 +12,11 @@ from monadic_context.context import (
     then,
     traverse,
     with_service,
-    from_dict,
     from_pairs,
     requires,
     use,
     Tag,
+    Context,
 )
 from monadic_context.pipe import compose, pipe
 
@@ -37,7 +36,7 @@ increment = st.functions(like=_increment, returns=st.integers(), pure=True)
 
 def make_test_context(value):
     tag = Tag[int]("test")
-    return of(tag)(value), tag
+    return Context.of(tag, value), tag
 
 
 @given(st.integers())
@@ -170,7 +169,7 @@ def test_tag_creation_methods():
     tag1 = Tag[int]("tag1")
     tag2 = Tag[str].new("tag2")
 
-    context = of(tag1)(42).extend(tag2, "hello")
+    context = Context.of(tag1, 42).extend(tag2, "hello")
 
     assert context.run(ask(tag1)) == 42
     assert context.run(ask(tag2)) == "hello"
@@ -180,13 +179,9 @@ def test_context_creation_methods():
     tag1 = Tag[int]("tag1")
     tag2 = Tag[str]("tag2")
 
-    context1 = from_dict({tag1: 42, tag2: "hello"})
-    assert context1.run(ask(tag1)) == 42
-    assert context1.run(ask(tag2)) == "hello"
-
-    context2 = from_pairs((tag1, 24), (tag2, "world"))
-    assert context2.run(ask(tag1)) == 24
-    assert context2.run(ask(tag2)) == "world"
+    context = from_pairs((tag1, 24), (tag2, "world"))
+    assert context.run(ask(tag1)) == 24
+    assert context.run(ask(tag2)) == "world"
 
 
 def test_context_extension():
@@ -194,8 +189,8 @@ def test_context_extension():
     tag2 = Tag[str]("tag2")
     tag3 = Tag[bool]("tag3")
 
-    context1 = of(tag1)(42)
-    context2 = of(tag2)("hello")
+    context1 = Context.of(tag1, 42)
+    context2 = Context.of(tag2, "hello")
 
     joined = context1.join(context2)
     assert joined.run(ask(tag1)) == 42
@@ -229,7 +224,7 @@ def test_use_tag():
         num = yield from use(tag1)
         return f"The answer is {num}"
 
-    context = of(tag1)(42)
+    context = Context.of(tag1, 42)
     result = context.run(build_message())
     assert result == "The answer is 42"
 
@@ -245,7 +240,7 @@ def test_use_tag():
 def test_missing_tag_error(make):
     present = Tag[int]("present")
     missing = Tag[int]("missing")
-    context = of(present)(1)
+    context = Context.of(present, 1)
 
     with pytest.raises(KeyError, match="'missing' not found.*'present'"):
         context.run(make(missing))

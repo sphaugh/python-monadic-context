@@ -19,8 +19,7 @@ if sys.version_info >= (3, 13):
 else:
     from typing_extensions import Never, ParamSpec, TypeVar
 
-from .context import Context, Tag
-from .context import of as _context_of
+from .context import Context, Tag, _ExactTag
 
 _T = TypeVar("_T")
 _A = TypeVar("_A")
@@ -46,12 +45,12 @@ class Layer(Generic[_In_co, _Out]):
     _f: Callable[[Context[_In_co]], AbstractContextManager[Context[_Out]]]
 
     @classmethod
-    def of(cls, t: Tag[_T], value: _T) -> Layer[Never, _T]:
+    def of(cls, t: _ExactTag[_T], value: _T) -> Layer[Never, _T]:
         """A layer providing one ready-made value, with no resources."""
 
         @contextmanager
         def _inner(_: Context[Never]) -> Iterator[Context[_T]]:
-            yield _context_of(t)(value)
+            yield Context.of(t, value)
 
         return Layer(_inner)
 
@@ -109,7 +108,7 @@ def layer(
                 except StopIteration:
                     raise RuntimeError(_NO_SERVICE) from None
                 try:
-                    yield _context_of(t)(item)
+                    yield Context.of(t, item)
                 except BaseException as exc:
                     try:
                         gen.throw(exc)
@@ -191,7 +190,7 @@ def alayer(
                 except StopAsyncIteration:
                     raise RuntimeError(_NO_SERVICE) from None
                 try:
-                    yield _context_of(t)(item)
+                    yield Context.of(t, item)
                 except BaseException as exc:
                     try:
                         await gen.athrow(exc)

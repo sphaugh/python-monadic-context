@@ -9,7 +9,6 @@ ignore comment becomes an error itself, so a lost check cannot pass silently.
 from typing import Never, assert_type
 
 from monadic_context import AsyncLayer, Context, Layer, Tag, alayer, layer, use
-from monadic_context import of as context_of
 
 
 class Cfg: ...
@@ -58,6 +57,11 @@ def needs_log():
 
 cfg = Layer.of(cfg_tag, Cfg())
 assert_type(cfg, Layer[Never, Cfg])
+assert_type(Context.of(cfg_tag, Cfg()), Context[Cfg])
+
+# A value that does not match the tag's type is rejected, not joined into it.
+Layer.of(cfg_tag, Db())  # pyright: ignore[reportArgumentType]
+Context.of(cfg_tag, Db())  # pyright: ignore[reportArgumentType]
 
 
 # Factories keep their parameters.
@@ -86,7 +90,7 @@ assert_type(chain, Layer[Never, Cfg | Log | Db | Cache])
 with chain.build() as ctx:
     assert_type(ctx, Context[Cfg | Log | Db | Cache])
 
-with db().build(context_of(cfg_tag)(Cfg())) as ctx2:
+with db().build(Context.of(cfg_tag, Cfg())) as ctx2:
     assert_type(ctx2, Context[Db])
 
 # Nothing upstream provides Log: must be rejected at this step.

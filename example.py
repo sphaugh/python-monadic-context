@@ -15,26 +15,23 @@ def build_url():
 
 
 # Create a context with required dependencies
-ctx = context.from_dict({port_tag: 8080, host_tag: "localhost"})
+ctx = context.from_pairs((port_tag, 8080), (host_tag, "localhost"))
 
 # Run the function with the context
 url = ctx.run(build_url())
 print(url)  # Output: http://localhost:8080
 
 # Single dependency
-ctx1 = context.of(port_tag)(8080)
+ctx1 = context.of(port_tag, 8080)
 
 # Joining contexts
-ctx2 = ctx1.join(context.of(host_tag)("localhost"))
+ctx2 = ctx1.join(context.of(host_tag, "localhost"))
 
-# From pairs (more efficient for multiple dependencies)
+# From pairs (each service is type-checked against its tag)
 ctx3 = context.from_pairs(
     (port_tag, 8080),
     (host_tag, "localhost"),
 )
-
-# From dictionary
-ctx4 = context.from_dict({port_tag: 8080, host_tag: "localhost"})
 
 
 # Map over a context-requiring function

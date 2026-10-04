@@ -5,7 +5,7 @@ import sys
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from functools import wraps
-from typing import Any, Generator, Generic, TypeVar
+from typing import Any, Generator, Generic, Protocol, TypeVar, overload
 
 if sys.version_info >= (3, 11):
     from typing import Never, ParamSpec, Concatenate
@@ -21,6 +21,14 @@ _B = TypeVar("_B")
 _U = TypeVar("_U")
 _R = TypeVar("_R")
 _P = ParamSpec("_P")
+_T1 = TypeVar("_T1")
+_T2 = TypeVar("_T2")
+_T3 = TypeVar("_T3")
+_T4 = TypeVar("_T4")
+_T5 = TypeVar("_T5")
+_T6 = TypeVar("_T6")
+_T7 = TypeVar("_T7")
+_T8 = TypeVar("_T8")
 _T_contra = TypeVar("_T_contra", contravariant=True)
 _T_co = TypeVar("_T_co", covariant=True)
 
@@ -134,6 +142,16 @@ def with_service(
 class Context(Generic[_T_contra]):
     _unsafe_map: dict[str, Any] = field(default_factory=dict)
 
+    @classmethod
+    def of(cls, t: _ExactTag[_T], service: _T) -> Context[_T]:
+        """A context holding a single service.
+
+        ``t`` is typed through an invariant view of ``Tag`` so the service is
+        checked against the tag's type rather than widened to a union with it.
+        """
+
+        return Context({t._id: service})
+
     def run(self, f: RequiresContext[_T_contra, _A]) -> _A:
         return f(self)
 
@@ -150,25 +168,99 @@ class Context(Generic[_T_contra]):
             {**self._unsafe_map, **other._unsafe_map},
         )
 
-    def extend(self, t: Tag[_U], service: _U) -> Context[_T_contra | _U]:
+    def extend(self, t: _ExactTag[_U], service: _U) -> Context[_T_contra | _U]:
         return Context({**self._unsafe_map, t._id: service})
 
 
-@defer
-def of(service: _T, t: Tag[_T]) -> Context[_T]:
-    """Create a new context with a single service."""
-
-    return Context({t._id: service})
+of = Context.of
 
 
-def from_dict(services: dict[Tag[_T], _T]) -> Context[_T]:
-    """Create a context from a dictionary of tag to service mappings."""
+@overload
+def from_pairs(
+    p1: tuple[_ExactTag[_T1], _T1],
+    /,
+) -> Context[_T1]: ...
 
-    return from_pairs(*services.items())
+
+@overload
+def from_pairs(
+    p1: tuple[_ExactTag[_T1], _T1],
+    p2: tuple[_ExactTag[_T2], _T2],
+    /,
+) -> Context[_T1 | _T2]: ...
 
 
-def from_pairs(*pairs: tuple[Tag[_T], _T]) -> Context[_T]:
-    """Create a context from multiple (tag, service) pairs."""
+@overload
+def from_pairs(
+    p1: tuple[_ExactTag[_T1], _T1],
+    p2: tuple[_ExactTag[_T2], _T2],
+    p3: tuple[_ExactTag[_T3], _T3],
+    /,
+) -> Context[_T1 | _T2 | _T3]: ...
+
+
+@overload
+def from_pairs(
+    p1: tuple[_ExactTag[_T1], _T1],
+    p2: tuple[_ExactTag[_T2], _T2],
+    p3: tuple[_ExactTag[_T3], _T3],
+    p4: tuple[_ExactTag[_T4], _T4],
+    /,
+) -> Context[_T1 | _T2 | _T3 | _T4]: ...
+
+
+@overload
+def from_pairs(
+    p1: tuple[_ExactTag[_T1], _T1],
+    p2: tuple[_ExactTag[_T2], _T2],
+    p3: tuple[_ExactTag[_T3], _T3],
+    p4: tuple[_ExactTag[_T4], _T4],
+    p5: tuple[_ExactTag[_T5], _T5],
+    /,
+) -> Context[_T1 | _T2 | _T3 | _T4 | _T5]: ...
+
+
+@overload
+def from_pairs(
+    p1: tuple[_ExactTag[_T1], _T1],
+    p2: tuple[_ExactTag[_T2], _T2],
+    p3: tuple[_ExactTag[_T3], _T3],
+    p4: tuple[_ExactTag[_T4], _T4],
+    p5: tuple[_ExactTag[_T5], _T5],
+    p6: tuple[_ExactTag[_T6], _T6],
+    /,
+) -> Context[_T1 | _T2 | _T3 | _T4 | _T5 | _T6]: ...
+
+
+@overload
+def from_pairs(
+    p1: tuple[_ExactTag[_T1], _T1],
+    p2: tuple[_ExactTag[_T2], _T2],
+    p3: tuple[_ExactTag[_T3], _T3],
+    p4: tuple[_ExactTag[_T4], _T4],
+    p5: tuple[_ExactTag[_T5], _T5],
+    p6: tuple[_ExactTag[_T6], _T6],
+    p7: tuple[_ExactTag[_T7], _T7],
+    /,
+) -> Context[_T1 | _T2 | _T3 | _T4 | _T5 | _T6 | _T7]: ...
+
+
+@overload
+def from_pairs(
+    p1: tuple[_ExactTag[_T1], _T1],
+    p2: tuple[_ExactTag[_T2], _T2],
+    p3: tuple[_ExactTag[_T3], _T3],
+    p4: tuple[_ExactTag[_T4], _T4],
+    p5: tuple[_ExactTag[_T5], _T5],
+    p6: tuple[_ExactTag[_T6], _T6],
+    p7: tuple[_ExactTag[_T7], _T7],
+    p8: tuple[_ExactTag[_T8], _T8],
+    /,
+) -> Context[_T1 | _T2 | _T3 | _T4 | _T5 | _T6 | _T7 | _T8]: ...
+
+
+def from_pairs(*pairs: tuple[_ExactTag[Any], Any]) -> Context[Any]:
+    """Create a context from (tag, service) pairs, each service checked against its tag."""
 
     return Context({t._id: service for t, service in pairs})
 
@@ -203,6 +295,23 @@ def use(tag: Tag[_T]) -> Generator[Tag[_T], _T, _T]:
 def genid():
     counter = itertools.count()
     return lambda: f"_anon{next(counter)}"
+
+
+class _ExactTag(Protocol[_T]):
+    """Invariant structural view of ``Tag``.
+
+    ``Tag`` is covariant so generators can yield several tags under one type
+    variable. In ``of``-style constructors that would let a mismatched value
+    widen the inferred type instead of being rejected; matching the tag
+    against this protocol pins the type variable exactly. ``use`` has the
+    type variable in both a covariant and a contravariant position, which is
+    what makes the protocol invariant. Any ``Tag`` satisfies it unchanged.
+    """
+
+    @property
+    def _id(self) -> str: ...
+
+    def use(self) -> Generator[Tag[_T], _T, _T]: ...
 
 
 @dataclass(frozen=True)

@@ -3,7 +3,7 @@ import asyncio
 import pytest
 
 from monadic_context import AsyncLayer, Layer, Tag, alayer, ask, layer, use
-from monadic_context import of as context_of
+from monadic_context import Context
 
 a_tag = Tag[str]("a")
 b_tag = Tag[str]("b")
@@ -163,7 +163,7 @@ def test_build_with_input_context_exposes_inputs():
         n = yield from use(cfg_tag)
         yield "a" * n
 
-    with dependent().build(context_of(cfg_tag)(3)) as ctx:
+    with dependent().build(Context.of(cfg_tag, 3)) as ctx:
         assert ctx.run(ask(a_tag)) == "aaa"
 
 
