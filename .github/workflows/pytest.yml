@@ -12,14 +12,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["pypy3.10", "3.9", "3.10", "3.11", "3.12", "3.13", "3.14"]
+        python-version: ["pypy3.11", "3.9", "3.10", "3.11", "3.12", "3.13", "3.14"]
 
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-      # Poetry itself no longer installs on 3.9 / pypy3.10, so CI uses plain pip.
+      # Poetry itself no longer installs on 3.9 / old PyPy, so CI uses plain pip.
       - name: Install dev dependencies
         run: pip install -e . pytest pytest-cov hypothesis
       - name: Run tests
